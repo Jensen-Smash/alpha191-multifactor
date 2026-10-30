@@ -1,0 +1,98 @@
+
+# ===== Conda / Python 环境 =====
+.conda/
+venv/
+.venv/
+env/
+ENV/
+__pypackages__/
+conda-meta/
+.python-version
+.python_history
+.jupyter/
+jupyter_*_config.py
+jupyter_*_config.json
+# environment.yml 为公开的依赖清单，保留用于环境重建和项目根目录定位
+
+# ===== Python 缓存 =====
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# ===== 本地数据 =====
+/data/
+# 忽略任意目录下的全部 Parquet 文件，保留本地数据但不提交
+*.parquet
+*.[pP][aA][rR][qQ][uU][eE][tT]
+*.feather
+*.arrow
+*.pkl
+*.pickle
+*.h5
+*.hdf5
+*.sqlite
+*.sqlite3
+*.db
+
+# ===== 图片与生成图表 =====
+/src/figures/
+*.[pP][nN][gG]
+*.[jJ][pP][gG]
+*.[jJ][pP][eE][gG]
+*.[gG][iI][fF]
+*.[sS][vV][gG]
+*.[wW][eE][bB][pP]
+*.[bB][mM][pP]
+*.[tT][iI][fF]
+*.[tT][iI][fF][fF]
+*.[iI][cC][oO]
+*.[aA][vV][iI][fF]
+*.[hH][eE][iI][cC]
+*.[hH][eE][iI][fF]
+*.[eE][pP][sS]
+
+# ===== 密钥与本地配置 =====
+.env
+.env.*
+!.env.example
+.envrc
+.pypirc
+.netrc
+_netrc
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+secrets.toml
+config.local.*
+*.local.json
+*.local.yml
+*.local.yaml
+
+# ===== 日志文件 =====
+*.log
+
+# ===== 编辑器配置 =====
+.vscode/
+.idea/
+.codex/
+.agents/
+
+# ===== 报告 =====
+# 仅公开本项目的研究报告，不提交第三方原研报或编译辅助文件
+*.[pP][dD][fF]
+!/report.pdf
+*.aux
+*.fdb_latexmk
+*.fls
+*.out
+*.toc
+*.xdv
+*.synctex.gz
+
+# ===== 操作系统文件 =====
+.DS_Store
+Thumbs.db

@@ -1,0 +1,23 @@
+
+name: alpha191
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.11
+  - numpy
+  - pandas
+  - scipy
+  - scikit-learn
+  - cvxpy
+  - clarabel
+  - pyarrow
+  - requests
+  - matplotlib
+  - jupyterlab
+  - ipykernel
+  - pip
+  - pip:
+      - tushare
+
