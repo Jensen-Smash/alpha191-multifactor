@@ -83,15 +83,7 @@ config.local.*
 
 # ===== 报告 =====
 # 仅公开本项目的研究报告，不提交第三方原研报或编译辅助文件
-*.[pP][dD][fF]
-!/report.pdf
-*.aux
-*.fdb_latexmk
-*.fls
-*.out
-*.toc
-*.xdv
-*.synctex.gz
+/tex/
 
 # ===== 操作系统文件 =====
 .DS_Store
