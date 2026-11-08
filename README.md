@@ -2,7 +2,7 @@
 
 本项目使用上海证券交易所股票的日频行情，研究价量因子对短期股票收益的预测能力，并将预测转化为投资组合。流程覆盖数据下载与清洗、因子暴露计算、因子评价、收益预测、组合优化和交易回测。
 
-项目实现了 33 个 Alpha191 候选因子（含 3 个长窗口代理）及 8 个风格因子，使用其中 8 个 Alpha 和全部风格因子构建收益模型，以 2025 年作为样本外回测期。具体公式、字段和计算步骤见各 notebook。
+项目实现了 33 个 Alpha191 候选因子（含 3 个长窗口代理）及 8 个风格因子。结合单因子评价初选 11 个 Alpha，再通过截面相关性分析选取 7 个 Alpha，与全部风格因子构建 15 维联合收益模型，以 2025 年作为按年份划分的回测期。具体公式、字段和计算步骤见各 notebook。
 
 完整研究方法、因子公式与回测结果见[研究报告（PDF）](report.pdf)。
 
@@ -14,7 +14,7 @@
 | --- | --- |
 | 2022-01-04 至 2025-12-31 | 数据覆盖；2022 年起的数据用于历史窗口预热 |
 | 2023-01-03 至 2024-12-27 的信号日 | 因子评价与筛选，对应收益最晚于 2024-12-31 开盘实现 |
-| 2025-01-02 至 2025-12-30 开盘 | 样本外回测；末日清仓，仍停牌的持仓保留估值 |
+| 2025-01-02 至 2025-12-30 开盘 | 按年份划分的回测；末日清仓，仍停牌的持仓保留估值 |
 
 收益标签 `return_t2` 为信号日后的下一交易日开盘买入、再下一交易日开盘卖出的后复权收益。2024 年最后两个交易日不参与因子评价，避免标签使用 2025 年行情。
 
@@ -51,8 +51,8 @@ jupyter lab
 | 3 | [return_t2.ipynb](src/return_t2/return_t2.ipynb) | 计算开盘到开盘的收益标签 |
 | 4 | [style_factor_exposure.ipynb](src/factor_exposure/style_factor/style_factor_exposure.ipynb) | 计算八个风格暴露 |
 | 5 | [alpha_factor_exposure.ipynb](src/factor_exposure/alpha_factor/alpha_factor_exposure.ipynb) | 计算候选 Alpha，截面处理并对风格中性化 |
-| 6 | [factor_evaluation.ipynb](src/factor_evaluation/factor_evaluation.ipynb) | 在研究期非 ST 股票中计算 Rank IC 及汇总指标 |
-| 7 | [factor_return.ipynb](src/factor_return/factor_return.ipynb) | 联合估计因子收益并生成滚动预测 |
+| 6 | [factor_evaluation.ipynb](src/factor_evaluation/factor_evaluation.ipynb) | 在研究期非 ST 股票中评价 33 个 Alpha，初选 11 个并分析相关性，确定 7 个入模因子 |
+| 7 | [factor_return.ipynb](src/factor_return/factor_return.ipynb) | 联合估计 8 个风格与 7 个 Alpha 的收益并生成滚动预测 |
 | 8 | [stock_return.ipynb](src/stock_return/stock_return.ipynb) | 合成股票预测收益 `return_t2_pre` |
 | 9 | [backtest.ipynb](src/backtest/backtest.ipynb) | 组合优化、交易模拟及策略与指数对照 |
 
@@ -60,7 +60,11 @@ jupyter lab
 
 八个风格因子为规模、动量、两类波动、两类流动性、Beta 和价值；价值因子采用账面市值比（市净率的倒数）。
 
-因子收益通过不带截距的每日联合截面 OLS 估计。全部 16 个因子的收益预测采用 `.shift(2).rolling(250).mean()`，股票预测为当日暴露与对应预测系数的乘积之和。回测期间按该规则滚动更新，仅使用当时已实现的收益。
+七个入模 Alpha 为 **Alpha42、Alpha80、Alpha1、Alpha132、Alpha112、Alpha177、Alpha118**。其中 Alpha80、Alpha112、Alpha177、Alpha118 在因子收益回归和股票收益预测两端均取负，保证暴露与系数方向一致。
+
+因子筛选仅使用研究期数据：先结合平均 Rank IC、IC 标准差、日 ICIR 和正 IC 比例，以 `|mean_ic| ≥ 0.01`、`|icir| ≥ 0.17` 的探索性门槛初选 11 个，再对统一方向后的暴露逐日计算截面 Spearman 相关矩阵，按有效日期等权平均，综合预测表现与信息重叠选取 7 个。该集合仍需分阶段表现和增量检验验证。
+
+因子收益通过不带截距的每日联合截面 OLS 估计。全部 15 个因子的收益预测采用 `.shift(2).rolling(250).mean()`，股票预测为当日暴露与对应预测系数的乘积之和。回测期间按该规则滚动更新，仅使用当时已实现的收益。`factor_return.parquet` 保存日期及 15 组实际值、预测值，共 31 列；股票预测仅使用带 `_pre` 后缀的预测系数。
 
 主要交易设定如下，详细实现见回测 notebook：
 
@@ -71,5 +75,7 @@ jupyter lab
 - 停牌持仓冻结，以截至昨日的最后有效收盘价估值；可交易旧持仓为 ST 或预测缺失时全部卖出。日频状态作为开盘执行状态的近似，当前不模拟最低佣金、滑点、涨跌停和成交量限制。
 
 回测生成每日账户、持仓、交易明细，以及 `backtest_summary` 和策略、同期指数净值对照。指数使用相同起止日期的开盘点位，不扣费用。结果在 notebook 中查看，当前不自动保存独立回测结果文件。
+
+在上述回测区间和执行假设下，策略扣费后累计收益为 **58.54%**，同期指数为 **17.95%**；策略年化波动率为 **25.93%**，夏普比率（无风险利率为零）为 **1.9823**，最大回撤为 **18.41%**。这些结果反映该区间内的实验表现，不能证明策略在其他时期仍然有效。
 
 报告图表统一保存到 `src/figures/`，由因子评价、因子收益和回测 notebook 末尾的绘图代码生成。
